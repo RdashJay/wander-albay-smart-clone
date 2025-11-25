@@ -42,18 +42,29 @@ interface Category {
   icon: string | null;
 }
 
+interface Subcategory {
+  id: string;
+  name: string;
+  category_id: string | null;
+  description: string | null;
+}
+
 const Explore = () => {
   const navigate = useNavigate();
   const [spots, setSpots] = useState<TouristSpot[]>([]);
   const [filteredSpots, setFilteredSpots] = useState<TouristSpot[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string>("all");
   const [session, setSession] = useState<Session | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [filteredSubcategories, setFilteredSubcategories] = useState<Subcategory[]>([]);
 
   useEffect(() => {
     fetchSpots();
     fetchCategories();
+    fetchSubcategories();
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -82,7 +93,21 @@ const Explore = () => {
 
   useEffect(() => {
     filterSpots();
-  }, [searchQuery, selectedCategory, spots]);
+  }, [searchQuery, selectedCategory, selectedSubcategory, spots]);
+
+  useEffect(() => {
+    if (selectedCategory === "all") {
+      setFilteredSubcategories([]);
+      setSelectedSubcategory("all");
+    } else {
+      const category = categories.find(c => c.name === selectedCategory);
+      if (category) {
+        const filtered = subcategories.filter(s => s.category_id === category.id);
+        setFilteredSubcategories(filtered);
+        setSelectedSubcategory("all");
+      }
+    }
+  }, [selectedCategory, categories, subcategories]);
 
   const fetchSpots = async () => {
     const { data } = await supabase
@@ -102,6 +127,15 @@ const Explore = () => {
     if (data) setCategories(data);
   };
 
+  const fetchSubcategories = async () => {
+    const { data } = await supabase
+      .from("subcategories")
+      .select("*")
+      .order("name");
+
+    if (data) setSubcategories(data);
+  };
+
   const filterSpots = () => {
     let filtered = spots;
 
@@ -118,6 +152,13 @@ const Explore = () => {
     if (selectedCategory !== "all") {
       filtered = filtered.filter((spot) =>
         spot.category.some((cat) => cat.toLowerCase().includes(selectedCategory.toLowerCase()))
+      );
+    }
+
+    // Subcategory filter
+    if (selectedSubcategory !== "all") {
+      filtered = filtered.filter((spot) =>
+        spot.category.some((cat) => cat.toLowerCase().includes(selectedSubcategory.toLowerCase()))
       );
     }
 
@@ -174,7 +215,7 @@ const Explore = () => {
           <TabsContent value="destinations" className="space-y-8">
             {/* Search & Filter */}
             <div className="space-y-4">
-              <div className="grid md:grid-cols-[1fr_250px] gap-4">
+              <div className="grid md:grid-cols-[1fr_250px_250px] gap-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
@@ -204,21 +245,56 @@ const Explore = () => {
                     ))}
                   </SelectContent>
                 </Select>
+
+                {/* SUBCATEGORY DROPDOWN */}
+                {selectedCategory !== "all" && filteredSubcategories.length > 0 && (
+                  <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
+                    <SelectTrigger className="w-full">
+                      <div className="flex items-center gap-2">
+                        <Filter className="w-4 h-4" />
+                        <SelectValue placeholder="All Subcategories" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        All Subcategories
+                      </SelectItem>
+                      {filteredSubcategories.map((subcategory) => (
+                        <SelectItem key={subcategory.id} value={subcategory.name}>
+                          {subcategory.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
-              {/* Active Filter Badge */}
-              {selectedCategory !== "all" && (
-                <div className="flex items-center gap-2">
+              {/* Active Filter Badges */}
+              {(selectedCategory !== "all" || selectedSubcategory !== "all") && (
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm text-muted-foreground">Filtered by:</span>
-                  <Badge variant="secondary" className="gap-2">
-                    {categories.find(c => c.name === selectedCategory)?.icon} {selectedCategory}
-                    <button
-                      onClick={() => setSelectedCategory("all")}
-                      className="ml-1 hover:text-destructive"
-                    >
-                      ×
-                    </button>
-                  </Badge>
+                  {selectedCategory !== "all" && (
+                    <Badge variant="secondary" className="gap-2">
+                      {categories.find(c => c.name === selectedCategory)?.icon} {selectedCategory}
+                      <button
+                        onClick={() => setSelectedCategory("all")}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        ×
+                      </button>
+                    </Badge>
+                  )}
+                  {selectedSubcategory !== "all" && (
+                    <Badge variant="secondary" className="gap-2">
+                      {selectedSubcategory}
+                      <button
+                        onClick={() => setSelectedSubcategory("all")}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        ×
+                      </button>
+                    </Badge>
+                  )}
                   <span className="text-sm text-muted-foreground">
                     ({filteredSpots.length} {filteredSpots.length === 1 ? 'spot' : 'spots'})
                   </span>
