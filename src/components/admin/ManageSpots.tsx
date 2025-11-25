@@ -531,15 +531,35 @@ const ManageSpots = () => {
         {spots.map((spot) => (
           <Card key={spot.id}>
             <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="mb-2">{spot.name}</CardTitle>
+              <div className="flex items-start gap-4">
+                {spot.image_url && (
+                  <img 
+                    src={spot.image_url} 
+                    alt={spot.name}
+                    className="w-24 h-24 object-cover rounded-lg border flex-shrink-0"
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <CardTitle className="flex items-center gap-2">
+                      {spot.name}
+                      {spot.is_hidden_gem && <span className="text-lg">💎</span>}
+                    </CardTitle>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(spot)}>
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(spot.id)}>
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                     <MapPin className="w-4 h-4" />
                     {spot.location}, {spot.municipality}
                   </div>
                   {spot.description && (
-                    <p className="text-sm text-muted-foreground mb-2">{spot.description}</p>
+                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{spot.description}</p>
                   )}
                   <div className="flex flex-wrap gap-2 mb-1">
                     {spot.category.map((cat) => (
@@ -551,14 +571,6 @@ const ManageSpots = () => {
                       <Badge key={type} variant="outline">{type}</Badge>
                     ))}
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => handleEdit(spot)}>
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(spot.id)}>
-                    <Trash2 className="w-4 h-4 text-destructive" />
-                  </Button>
                 </div>
               </div>
             </CardHeader>
