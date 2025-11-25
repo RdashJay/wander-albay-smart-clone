@@ -13,7 +13,6 @@ import { ManageCategories } from "@/components/admin/ManageCategories";
 import UserManagement from "@/components/admin/UserManagement";
 import Analytics from "@/components/admin/Analytics";
 import ReviewManagement from "@/components/admin/ReviewManagement";
-import BulkImport from "@/components/admin/BulkImport";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -97,7 +96,7 @@ const AdminDashboard = () => {
           </div>
 
           <Tabs defaultValue="spots" className="w-full">
-            <TabsList className="grid w-full grid-cols-9 mb-8">
+            <TabsList className="grid w-full grid-cols-8 mb-8">
               <TabsTrigger value="spots">Spots</TabsTrigger>
               <TabsTrigger value="accommodations">Accommodations</TabsTrigger>
               <TabsTrigger value="restaurants">Restaurants</TabsTrigger>
@@ -106,7 +105,6 @@ const AdminDashboard = () => {
               <TabsTrigger value="users">Users</TabsTrigger>
               <TabsTrigger value="reviews">Reviews</TabsTrigger>
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
-              <TabsTrigger value="import">Bulk Import</TabsTrigger>
             </TabsList>
 
             <TabsContent value="spots">
@@ -139,10 +137,6 @@ const AdminDashboard = () => {
 
             <TabsContent value="analytics">
               <Analytics />
-            </TabsContent>
-
-            <TabsContent value="import">
-              <BulkImport />
             </TabsContent>
           </Tabs>
         </div>
