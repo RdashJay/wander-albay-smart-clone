@@ -106,8 +106,7 @@ const UserManagement = () => {
   const handleDeactivateUser = async (userId: string) => {
     try {
       const { error } = await supabase.functions.invoke("admin-create-user", {
-        method: "DELETE",
-        body: { userId },
+        body: { action: "delete", userId },
       });
 
       if (error) throw error;
@@ -158,7 +157,7 @@ const UserManagement = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke("admin-create-user", {
-        body: newUser,
+        body: { action: "create", ...newUser },
       });
 
       if (error) throw error;

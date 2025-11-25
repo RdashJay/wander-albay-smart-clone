@@ -12,7 +12,6 @@ serve(async (req) => {
   }
 
   try {
-    const method = req.method;
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -51,9 +50,13 @@ serve(async (req) => {
       });
     }
 
-    // Handle DELETE request - delete user
-    if (method === "DELETE") {
-      const { userId } = await req.json();
+    // Parse request body
+    const requestBody = await req.json();
+    const { action } = requestBody;
+
+    // Handle delete action
+    if (action === "delete") {
+      const { userId } = requestBody;
       
       const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(userId);
       
@@ -70,8 +73,8 @@ serve(async (req) => {
       });
     }
 
-    // Handle POST request - create user
-    const { email, password, firstName, lastName, middleInitial, suffix, role } = await req.json();
+    // Handle create action
+    const { email, password, firstName, lastName, middleInitial, suffix, role } = requestBody;
 
     // Construct full name
     const fullName = `${firstName} ${middleInitial ? middleInitial + '. ' : ''}${lastName}${suffix ? ' ' + suffix : ''}`.trim();
