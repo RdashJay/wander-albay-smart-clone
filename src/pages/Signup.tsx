@@ -43,11 +43,13 @@ export default function Signup() {
       });
 
       // Sign up with Supabase Auth
+      const redirectUrl = `${window.location.origin}/verified`;
+      
       const { data, error } = await supabase.auth.signUp({
         email: validatedData.email,
         password: validatedData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: redirectUrl,
           data: {
             full_name: validatedData.fullName,
           }
