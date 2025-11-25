@@ -266,16 +266,15 @@ const UserManagement = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="suffix">Suffix</Label>
+                  <Label htmlFor="suffix">Suffix (Optional)</Label>
                   <Select
                     value={newUser.suffix}
                     onValueChange={(value) => setNewUser({ ...newUser, suffix: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="None" />
+                      <SelectValue placeholder="Select suffix (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
                       <SelectItem value="Jr.">Jr.</SelectItem>
                       <SelectItem value="Sr.">Sr.</SelectItem>
                       <SelectItem value="II">II</SelectItem>
