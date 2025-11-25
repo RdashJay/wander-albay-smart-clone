@@ -49,6 +49,12 @@ interface Barangay {
   name: string;
 }
 
+interface Subcategory {
+  id: string;
+  name: string;
+  category_id: string | null;
+}
+
 const ManageSpots = () => {
   const [spots, setSpots] = useState<TouristSpot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,6 +62,7 @@ const ManageSpots = () => {
   const [editingSpot, setEditingSpot] = useState<TouristSpot | null>(null);
   const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
   const [barangays, setBarangays] = useState<Barangay[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -74,11 +81,11 @@ const ManageSpots = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
 
   const availableCategories = ["Nature", "Culture", "Adventure", "Food", "Beach", "Heritage"];
-  const availableSpotTypes = ["Camping", "Scenic", "Hiking", "Relaxation", "Island Hopping", "Zipline", "Wildlife", "Museum", "Night Market"];
 
   useEffect(() => {
     fetchSpots();
     fetchMunicipalities();
+    fetchSubcategories();
   }, []);
 
   const fetchSpots = async () => {
@@ -89,6 +96,17 @@ const ManageSpots = () => {
         spot_type: spot.spot_type || [], // Ensure it's always an array
       }));
       setSpots(spotsWithType);
+    }
+  };
+
+  const fetchSubcategories = async () => {
+    const { data, error } = await supabase
+      .from("subcategories")
+      .select("*")
+      .order("name");
+
+    if (!error && data) {
+      setSubcategories(data);
     }
   };
 
@@ -243,6 +261,7 @@ const ManageSpots = () => {
         location: formData.location,
         municipality: formData.municipality || null,
         category: formData.category.length ? formData.category : null,
+        spot_type: formData.spot_type.length ? formData.spot_type : null,
         contact_number: formData.contact_number || null,
         image_url: imageUrl,
         rating: formData.rating || 0,
@@ -468,9 +487,9 @@ const ManageSpots = () => {
                 </div>
               </div>
 
-              {/* Spot Type Dropdown */}
+              {/* Spot Type (Subcategories) Dropdown */}
               <div>
-                <Label className="mb-3 block">Spot Type</Label>
+                <Label className="mb-3 block">Spot Type (Subcategories)</Label>
                 <Select onValueChange={(value) => toggleSpotType(value)} value="">
                   <SelectTrigger>
                     <SelectValue
@@ -482,11 +501,11 @@ const ManageSpots = () => {
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableSpotTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
+                    {subcategories.map((subcategory) => (
+                      <SelectItem key={subcategory.id} value={subcategory.name}>
                         <div className="flex items-center gap-2">
-                          <input type="checkbox" checked={formData.spot_type.includes(type)} readOnly />
-                          <span>{type}</span>
+                          <input type="checkbox" checked={formData.spot_type.includes(subcategory.name)} readOnly />
+                          <span>{subcategory.name}</span>
                         </div>
                       </SelectItem>
                     ))}
