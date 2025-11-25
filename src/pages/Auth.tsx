@@ -84,7 +84,7 @@ const Auth = () => {
         // Check if email is verified
         if (!data.user.email_confirmed_at) {
           await supabase.auth.signOut();
-          toast.error("Please verify your email before logging in. Check your inbox.");
+          toast.error("Please verify your email first.");
           navigate("/email-verification");
           return;
         }

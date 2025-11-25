@@ -80,7 +80,7 @@ export default function Signup() {
       }
 
       if (data.user) {
-        toast.success("Verification email sent! Check your inbox.");
+        toast.success("Account created! Check your email to verify your account.");
         navigate("/email-verification");
       }
     } catch (error: any) {

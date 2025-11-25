@@ -34,7 +34,7 @@ const Verified = () => {
   }, []);
 
   const handleContinue = () => {
-    navigate("/");
+    navigate("/auth");
   };
 
   if (isChecking) {
@@ -57,27 +57,16 @@ const Verified = () => {
           <div className="mx-auto p-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full w-20 h-20 flex items-center justify-center">
             <CheckCircle2 className="w-10 h-10 text-white" />
           </div>
-          <CardTitle className="text-2xl">
-            {isVerified ? "Email Verified!" : "Verification Complete"}
-          </CardTitle>
+          <CardTitle className="text-2xl">Email Verified!</CardTitle>
           <CardDescription className="text-base">
-            {isVerified 
-              ? "Your email has been successfully verified. You can now access all features of Wanderer."
-              : "Your verification is being processed. You can now log in to your account."
-            }
+            Your email has been verified. You can now log in.
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <Button onClick={handleContinue} className="w-full" size="lg">
-            Continue to Wanderer
+            Continue to Login
           </Button>
-
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground">
-              Ready to start exploring?
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>
