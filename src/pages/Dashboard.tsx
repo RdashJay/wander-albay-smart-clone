@@ -205,8 +205,6 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Weather & Safety */}
-          <WeatherWidget />
 
           {/* Event Notifications */}
           {profile?.user_preferences?.districts && (
