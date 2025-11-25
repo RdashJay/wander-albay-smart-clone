@@ -223,19 +223,6 @@ const PersonalizedFeed = ({ userId }: PersonalizedFeedProps) => {
                     Hidden Gem
                   </Badge>
                 )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite(spot.id);
-                  }}
-                  className="absolute top-3 right-3 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
-                >
-                  <Heart
-                    className={`w-5 h-5 ${
-                      isFavorited ? "fill-red-500 text-red-500" : "text-foreground"
-                    }`}
-                  />
-                </button>
               </div>
 
               <CardHeader className="pb-3">

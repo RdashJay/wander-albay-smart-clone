@@ -209,35 +209,18 @@ const RecommendedSpots = ({ preferences, userId }: RecommendedSpotsProps) => {
             <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
               {spot.description}
             </p>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex-1"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/spot/${spot.id}`);
-                }}
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                View Details
-              </Button>
-              <Button
-                variant={isFavorite(spot.id) ? "default" : "outline"}
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleFavorite(spot.id);
-                }}
-              >
-                <Heart className={`w-4 h-4 ${isFavorite(spot.id) ? 'fill-current' : ''}`} />
-              </Button>
-              {isVisited(spot.id) && (
-                <Button variant="outline" size="sm" disabled>
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                </Button>
-              )}
-            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/spot/${spot.id}`);
+              }}
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              View Details
+            </Button>
           </CardContent>
         </Card>
       ))}
