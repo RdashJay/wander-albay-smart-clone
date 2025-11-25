@@ -385,6 +385,8 @@ export type Database = {
       }
       tourist_spots: {
         Row: {
+          accessibility_friendly: boolean | null
+          budget_level: string | null
           category: string[] | null
           contact_number: string | null
           created_at: string
@@ -398,10 +400,13 @@ export type Database = {
           municipality: string | null
           name: string
           rating: number | null
+          scenery_type: string[] | null
           spot_type: string[] | null
           updated_at: string
         }
         Insert: {
+          accessibility_friendly?: boolean | null
+          budget_level?: string | null
           category?: string[] | null
           contact_number?: string | null
           created_at?: string
@@ -415,10 +420,13 @@ export type Database = {
           municipality?: string | null
           name: string
           rating?: number | null
+          scenery_type?: string[] | null
           spot_type?: string[] | null
           updated_at?: string
         }
         Update: {
+          accessibility_friendly?: boolean | null
+          budget_level?: string | null
           category?: string[] | null
           contact_number?: string | null
           created_at?: string
@@ -432,6 +440,7 @@ export type Database = {
           municipality?: string | null
           name?: string
           rating?: number | null
+          scenery_type?: string[] | null
           spot_type?: string[] | null
           updated_at?: string
         }

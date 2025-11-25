@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Sparkles, Loader2, Mountain, Church, Waves, UtensilsCrossed, MapPin } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft } from "lucide-react";
 
 interface OnboardingModalProps {
   open: boolean;
@@ -13,297 +14,160 @@ interface OnboardingModalProps {
   userId: string;
 }
 
-interface Category {
-  id: string;
-  name: string;
-  icon: string;
-}
-
-interface Subcategory {
-  id: string;
-  category_id: string;
-  name: string;
-  description: string;
-}
-
 interface UserPreferences {
-  categories: string[];
-  subcategories: string[];
-  districts: string[];
-  travelStyle: string;
+  travelerType: string[];
+  activities: string[];
+  travelDistance: string;
+  budgetRange: string;
+  placePreference: string;
+  accessibilityNeeded: boolean;
+  sceneryPreference: string[];
   travelPace: string;
+  travelCompanions: string;
+  autoRecommendations: boolean;
 }
 
 export const OnboardingModal = ({ open, onComplete, userId }: OnboardingModalProps) => {
   const [step, setStep] = useState(1);
-  const totalSteps = 7;
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [loading, setLoading] = useState(false);
   const [preferences, setPreferences] = useState<UserPreferences>({
-    categories: [],
-    subcategories: [],
-    districts: [],
-    travelStyle: "",
+    travelerType: [],
+    activities: [],
+    travelDistance: "",
+    budgetRange: "",
+    placePreference: "",
+    accessibilityNeeded: false,
+    sceneryPreference: [],
     travelPace: "",
+    travelCompanions: "",
+    autoRecommendations: true,
   });
-  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    fetchCategories();
-    fetchSubcategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    const { data, error } = await supabase
-      .from("categories")
-      .select("*")
-      .order("name");
-
-    if (!error && data) {
-      setCategories(data);
-    }
-  };
-
-  const fetchSubcategories = async () => {
-    const { data, error } = await supabase
-      .from("subcategories")
-      .select("*")
-      .order("name");
-
-    if (!error && data) {
-      setSubcategories(data);
-    }
-  };
-
-  const districtOptions = [
-    { name: "District 1", subtitle: "Coastal Wonders", icon: "🐚" },
-    { name: "District 2", subtitle: "Central Adventure", icon: "🌋" },
-    { name: "District 3", subtitle: "Countryside Escapes", icon: "🌾" },
-  ];
+  const totalSteps = 10;
 
   const handleSubmit = async () => {
-    setIsLoading(true);
+    setLoading(true);
     try {
       const { error } = await supabase
         .from("profiles")
         .update({
-          onboarding_complete: true,
-          onboarding_answers: preferences as any,
           user_preferences: preferences as any,
+          onboarding_complete: true,
         })
         .eq("id", userId);
 
       if (error) throw error;
 
-      toast.success("Welcome to Wanderer! 🌋 Your profile is ready.");
+      toast.success("Preferences saved! Generating your personalized recommendations...");
       onComplete();
     } catch (error) {
       console.error("Error saving preferences:", error);
       toast.error("Failed to save preferences. Please try again.");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   const canProceed = () => {
     switch (step) {
-      case 1:
-        return true; // Welcome screen
-      case 2:
-        return preferences.categories.length > 0;
-      case 3:
-        return preferences.subcategories.length > 0;
-      case 4:
-        return preferences.districts.length > 0;
-      case 5:
-        return preferences.travelStyle !== "";
-      case 6:
-        return preferences.travelPace !== "";
-      default:
-        return true;
+      case 1: return preferences.travelerType.length > 0;
+      case 2: return preferences.activities.length > 0;
+      case 3: return preferences.travelDistance !== "";
+      case 4: return preferences.budgetRange !== "";
+      case 5: return preferences.placePreference !== "";
+      case 6: return true; // accessibility is optional
+      case 7: return preferences.sceneryPreference.length > 0;
+      case 8: return preferences.travelPace !== "";
+      case 9: return preferences.travelCompanions !== "";
+      case 10: return true; // auto recommendations has default
+      default: return false;
     }
   };
 
-  const toggleCategory = (categoryName: string) => {
-    setPreferences((prev) => ({
-      ...prev,
-      categories: prev.categories.includes(categoryName)
-        ? prev.categories.filter((c) => c !== categoryName)
-        : [...prev.categories, categoryName],
-    }));
-  };
-
-  const toggleSubcategory = (subcategoryName: string) => {
-    setPreferences((prev) => ({
-      ...prev,
-      subcategories: prev.subcategories.includes(subcategoryName)
-        ? prev.subcategories.filter((s) => s !== subcategoryName)
-        : [...prev.subcategories, subcategoryName],
-    }));
-  };
-
-  const toggleDistrict = (district: string) => {
-    setPreferences((prev) => ({
-      ...prev,
-      districts: prev.districts.includes(district)
-        ? prev.districts.filter((d) => d !== district)
-        : [...prev.districts, district],
-    }));
-  };
-
-  const getFilteredSubcategories = () => {
-    if (preferences.categories.length === 0) return subcategories;
-    
-    const selectedCategoryIds = categories
-      .filter((c) => preferences.categories.includes(c.name))
-      .map((c) => c.id);
-    
-    return subcategories.filter((s) =>
-      selectedCategoryIds.includes(s.category_id)
-    );
+  const toggleMultiSelect = (field: keyof UserPreferences, value: string) => {
+    const current = preferences[field] as string[];
+    setPreferences({
+      ...preferences,
+      [field]: current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value],
+    });
   };
 
   const renderStep = () => {
     switch (step) {
       case 1:
         return (
-          <div className="text-center space-y-6 py-8 animate-fade-in">
-            <div className="inline-flex items-center gap-2 mb-4">
-              <Sparkles className="w-12 h-12 text-accent" />
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold">
-              Welcome to Wanderer 🌋
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-md mx-auto">
-              Your Smart Albay Travel Companion!
-            </p>
-            <p className="text-muted-foreground">
-              Let's personalize your travel experience with a few quick questions.
-            </p>
-          </div>
+          <Card className="border-0 shadow-none">
+            <CardContent className="pt-6 space-y-4">
+              <h3 className="text-xl font-semibold mb-4">What type of traveler are you?</h3>
+              <p className="text-sm text-muted-foreground mb-4">Select all that apply</p>
+              {["Adventure Seeker", "Nature Lover", "Relaxed Tourist", "Food Explorer", "Cultural/Historical Traveler"].map((type) => (
+                <div key={type} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent transition-colors">
+                  <Checkbox
+                    id={type}
+                    checked={preferences.travelerType.includes(type)}
+                    onCheckedChange={() => toggleMultiSelect("travelerType", type)}
+                  />
+                  <Label htmlFor={type} className="cursor-pointer flex-1 font-normal">{type}</Label>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
         );
 
       case 2:
         return (
-          <Card className="border-2 shadow-lg animate-fade-in">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-accent" />
-                Choose What You Love
-              </CardTitle>
-              <CardDescription>
-                What kind of traveler are you? Select all that match your interests
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {categories.map((category) => (
-                  <div
-                    key={category.id}
-                    onClick={() => toggleCategory(category.name)}
-                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                      preferences.categories.includes(category.name)
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <Checkbox
-                        checked={preferences.categories.includes(category.name)}
-                        className="mt-1"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-2xl">{category.icon}</span>
-                          <h3 className="font-semibold text-lg">{category.name}</h3>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <Card className="border-0 shadow-none">
+            <CardContent className="pt-6 space-y-4">
+              <h3 className="text-xl font-semibold mb-4">What activities do you enjoy most?</h3>
+              <p className="text-sm text-muted-foreground mb-4">Select all that apply</p>
+              {["Hiking", "Swimming/Beach", "Food Trips", "Historical Tours", "Sightseeing", "Wildlife/Eco Tours", "Shopping"].map((activity) => (
+                <div key={activity} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent transition-colors">
+                  <Checkbox
+                    id={activity}
+                    checked={preferences.activities.includes(activity)}
+                    onCheckedChange={() => toggleMultiSelect("activities", activity)}
+                  />
+                  <Label htmlFor={activity} className="cursor-pointer flex-1 font-normal">{activity}</Label>
+                </div>
+              ))}
             </CardContent>
           </Card>
         );
 
       case 3:
         return (
-          <Card className="border-2 shadow-lg animate-fade-in">
-            <CardHeader>
-              <CardTitle>Select Subcategories</CardTitle>
-              <CardDescription>
-                Choose specific activities and experiences you'd like
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid sm:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto">
-                {getFilteredSubcategories().map((subcategory) => (
-                  <div
-                    key={subcategory.id}
-                    onClick={() => toggleSubcategory(subcategory.name)}
-                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                      preferences.subcategories.includes(subcategory.name)
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <Checkbox
-                        checked={preferences.subcategories.includes(subcategory.name)}
-                        className="mt-1"
-                      />
-                      <div className="flex-1">
-                        <p className="font-medium">{subcategory.name}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {subcategory.description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <Card className="border-0 shadow-none">
+            <CardContent className="pt-6 space-y-4">
+              <h3 className="text-xl font-semibold mb-4">How far are you willing to travel?</h3>
+              {["Within my city", "Within my province", "Within Region V", "Anywhere in the Philippines"].map((distance) => (
+                <div key={distance} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent transition-colors">
+                  <Checkbox
+                    id={distance}
+                    checked={preferences.travelDistance === distance}
+                    onCheckedChange={() => setPreferences({ ...preferences, travelDistance: distance })}
+                  />
+                  <Label htmlFor={distance} className="cursor-pointer flex-1 font-normal">{distance}</Label>
+                </div>
+              ))}
             </CardContent>
           </Card>
         );
 
       case 4:
         return (
-          <Card className="border-2 shadow-lg animate-fade-in">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="w-6 h-6 text-primary" />
-                Choose Districts in Albay
-              </CardTitle>
-              <CardDescription>
-                Which parts of Albay would you like to explore?
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {districtOptions.map((district) => (
-                <div
-                  key={district.name}
-                  onClick={() => toggleDistrict(district.name)}
-                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                    preferences.districts.includes(district.name)
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <Checkbox
-                      checked={preferences.districts.includes(district.name)}
-                      className="mt-1"
-                    />
-                    <div className="flex-1 flex items-center gap-4">
-                      <div className="text-4xl">{district.icon}</div>
-                      <div>
-                        <p className="font-bold text-lg">{district.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {district.subtitle}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+          <Card className="border-0 shadow-none">
+            <CardContent className="pt-6 space-y-4">
+              <h3 className="text-xl font-semibold mb-4">What is your preferred budget range?</h3>
+              {["Budget-friendly", "Moderate", "Premium", "No preference"].map((budget) => (
+                <div key={budget} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent transition-colors">
+                  <Checkbox
+                    id={budget}
+                    checked={preferences.budgetRange === budget}
+                    onCheckedChange={() => setPreferences({ ...preferences, budgetRange: budget })}
+                  />
+                  <Label htmlFor={budget} className="cursor-pointer flex-1 font-normal">{budget}</Label>
                 </div>
               ))}
             </CardContent>
@@ -312,98 +176,133 @@ export const OnboardingModal = ({ open, onComplete, userId }: OnboardingModalPro
 
       case 5:
         return (
-          <Card className="border-2 shadow-lg animate-fade-in">
-            <CardHeader>
-              <CardTitle>Choose Travel Style</CardTitle>
-              <CardDescription>Who are you traveling with?</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { name: "Solo", icon: "🚶" },
-                  { name: "Couple", icon: "💑" },
-                  { name: "Family", icon: "👨‍👩‍👧" },
-                  { name: "Friends", icon: "👥" },
-                ].map((style) => (
-                  <div
-                    key={style.name}
-                    onClick={() =>
-                      setPreferences((prev) => ({ ...prev, travelStyle: style.name }))
-                    }
-                    className={`p-6 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                      preferences.travelStyle === style.name
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                  >
-                    <div className="text-center space-y-2">
-                      <div className="text-4xl">{style.icon}</div>
-                      <p className="font-medium">{style.name}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <Card className="border-0 shadow-none">
+            <CardContent className="pt-6 space-y-4">
+              <h3 className="text-xl font-semibold mb-4">Do you prefer popular places or hidden gems?</h3>
+              {["Popular", "Hidden Gems", "Both"].map((pref) => (
+                <div key={pref} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent transition-colors">
+                  <Checkbox
+                    id={pref}
+                    checked={preferences.placePreference === pref}
+                    onCheckedChange={() => setPreferences({ ...preferences, placePreference: pref })}
+                  />
+                  <Label htmlFor={pref} className="cursor-pointer flex-1 font-normal">{pref}</Label>
+                </div>
+              ))}
             </CardContent>
           </Card>
         );
 
       case 6:
         return (
-          <Card className="border-2 shadow-lg animate-fade-in">
-            <CardHeader>
-              <CardTitle>Choose Travel Pace</CardTitle>
-              <CardDescription>
-                What kind of travel experience do you prefer?
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 gap-4">
-                {[
-                  { name: "Relaxing", icon: "🕊️", desc: "Take it slow and enjoy the moments" },
-                  { name: "Thrilling", icon: "⚡", desc: "Packed with action and adventure" },
-                  { name: "Balanced", icon: "🎒", desc: "Mix of relaxation and exploration" },
-                ].map((pace) => (
-                  <div
-                    key={pace.name}
-                    onClick={() =>
-                      setPreferences((prev) => ({ ...prev, travelPace: pace.name }))
-                    }
-                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                      preferences.travelPace === pace.name
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="text-4xl">{pace.icon}</div>
-                      <div>
-                        <p className="font-bold text-lg">{pace.name}</p>
-                        <p className="text-sm text-muted-foreground">{pace.desc}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <Card className="border-0 shadow-none">
+            <CardContent className="pt-6 space-y-4">
+              <h3 className="text-xl font-semibold mb-4">Do you need accessibility-friendly locations?</h3>
+              {[
+                { value: true, label: "Yes" },
+                { value: false, label: "No" },
+              ].map((option) => (
+                <div key={String(option.value)} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent transition-colors">
+                  <Checkbox
+                    id={String(option.value)}
+                    checked={preferences.accessibilityNeeded === option.value}
+                    onCheckedChange={() => setPreferences({ ...preferences, accessibilityNeeded: option.value })}
+                  />
+                  <Label htmlFor={String(option.value)} className="cursor-pointer flex-1 font-normal">{option.label}</Label>
+                </div>
+              ))}
             </CardContent>
           </Card>
         );
 
       case 7:
         return (
-          <div className="text-center space-y-6 py-8 animate-fade-in">
-            <div className="text-6xl">🌋</div>
-            <h2 className="text-3xl font-bold">Thanks, Traveler!</h2>
-            <p className="text-lg text-muted-foreground">
-              Your Wanderer profile is ready.
-            </p>
-            <div className="text-sm text-muted-foreground space-y-2 text-left max-w-md mx-auto bg-muted/30 p-6 rounded-lg">
-              <p>📍 <strong>Districts:</strong> {preferences.districts.join(", ")}</p>
-              <p>🎯 <strong>Interests:</strong> {preferences.categories.join(", ")}</p>
-              <p>✨ <strong>Activities:</strong> {preferences.subcategories.slice(0, 3).join(", ")}{preferences.subcategories.length > 3 ? "..." : ""}</p>
-              <p>👥 <strong>Travel Style:</strong> {preferences.travelStyle}</p>
-              <p>⚡ <strong>Pace:</strong> {preferences.travelPace}</p>
-            </div>
-          </div>
+          <Card className="border-0 shadow-none">
+            <CardContent className="pt-6 space-y-4">
+              <h3 className="text-xl font-semibold mb-4">What scenery do you prefer?</h3>
+              <p className="text-sm text-muted-foreground mb-4">Select all that apply</p>
+              {["Mountain", "Beach", "Waterfalls", "Urban", "Rural/Nature", "No preference"].map((scenery) => (
+                <div key={scenery} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent transition-colors">
+                  <Checkbox
+                    id={scenery}
+                    checked={preferences.sceneryPreference.includes(scenery)}
+                    onCheckedChange={() => toggleMultiSelect("sceneryPreference", scenery)}
+                  />
+                  <Label htmlFor={scenery} className="cursor-pointer flex-1 font-normal">{scenery}</Label>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        );
+
+      case 8:
+        return (
+          <Card className="border-0 shadow-none">
+            <CardContent className="pt-6 space-y-4">
+              <h3 className="text-xl font-semibold mb-4">What is your travel pace?</h3>
+              {[
+                { value: "Slow", desc: "Take your time, enjoy each moment" },
+                { value: "Balanced", desc: "Mix of relaxation and activity" },
+                { value: "Fast", desc: "See as much as possible" },
+              ].map((pace) => (
+                <div key={pace.value} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent transition-colors">
+                  <Checkbox
+                    id={pace.value}
+                    checked={preferences.travelPace === pace.value}
+                    onCheckedChange={() => setPreferences({ ...preferences, travelPace: pace.value })}
+                  />
+                  <Label htmlFor={pace.value} className="cursor-pointer flex-1">
+                    <div className="font-medium">{pace.value}</div>
+                    <div className="text-sm text-muted-foreground">{pace.desc}</div>
+                  </Label>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        );
+
+      case 9:
+        return (
+          <Card className="border-0 shadow-none">
+            <CardContent className="pt-6 space-y-4">
+              <h3 className="text-xl font-semibold mb-4">Who are you traveling with?</h3>
+              {["Solo", "Couple", "Family", "Friends"].map((companion) => (
+                <div key={companion} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent transition-colors">
+                  <Checkbox
+                    id={companion}
+                    checked={preferences.travelCompanions === companion}
+                    onCheckedChange={() => setPreferences({ ...preferences, travelCompanions: companion })}
+                  />
+                  <Label htmlFor={companion} className="cursor-pointer flex-1 font-normal">{companion}</Label>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        );
+
+      case 10:
+        return (
+          <Card className="border-0 shadow-none">
+            <CardContent className="pt-6 space-y-4">
+              <h3 className="text-xl font-semibold mb-4">Do you want automatic recommendations?</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                We'll show you personalized recommendations based on your preferences
+              </p>
+              {[
+                { value: true, label: "Yes, show me recommendations" },
+                { value: false, label: "No, I'll explore on my own" },
+              ].map((option) => (
+                <div key={String(option.value)} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent transition-colors">
+                  <Checkbox
+                    id={`auto-${option.value}`}
+                    checked={preferences.autoRecommendations === option.value}
+                    onCheckedChange={() => setPreferences({ ...preferences, autoRecommendations: option.value })}
+                  />
+                  <Label htmlFor={`auto-${option.value}`} className="cursor-pointer flex-1 font-normal">{option.label}</Label>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
         );
 
       default:
@@ -411,62 +310,53 @@ export const OnboardingModal = ({ open, onComplete, userId }: OnboardingModalPro
     }
   };
 
-  const getButtonText = () => {
-    if (step === 1) return "Start Onboarding";
-    if (step === totalSteps) return "Explore Albay";
-    return "Continue";
-  };
-
-  const handleNext = () => {
-    if (step === totalSteps) {
-      handleSubmit();
-    } else {
-      setStep(step + 1);
-    }
-  };
-
   return (
-    <Dialog open={open}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <div className="space-y-6">
-          {renderStep()}
-
-          <div className="flex justify-between items-center pt-4">
-            {step > 1 && (
-              <Button
-                variant="outline"
-                onClick={() => setStep(step - 1)}
-                disabled={isLoading}
-              >
-                Back
-              </Button>
-            )}
-            <Button
-              className={`gap-2 ${step === 1 ? "w-full" : "ml-auto"}`}
-              onClick={handleNext}
-              disabled={!canProceed() || isLoading}
-              size="lg"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5" />
-                  {getButtonText()}
-                </>
-              )}
-            </Button>
+    <Dialog open={open} onOpenChange={() => {}}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-2xl">
+            {step === 1 ? "Welcome to Wanderer!" : `Step ${step} of ${totalSteps}`}
+          </DialogTitle>
+          <div className="w-full bg-secondary rounded-full h-2 mt-4">
+            <div
+              className="bg-primary h-2 rounded-full transition-all duration-300"
+              style={{ width: `${(step / totalSteps) * 100}%` }}
+            />
           </div>
+        </DialogHeader>
 
-          {step > 1 && step < totalSteps && (
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">
-                Step {step - 1} of {totalSteps - 2}
-              </p>
-            </div>
+        <div className="py-4">{renderStep()}</div>
+
+        <div className="flex justify-between gap-4 pt-4">
+          {step > 1 && (
+            <Button
+              variant="outline"
+              onClick={() => setStep(step - 1)}
+              disabled={loading}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+          )}
+          
+          <div className="flex-1" />
+          
+          {step < totalSteps ? (
+            <Button
+              onClick={() => setStep(step + 1)}
+              disabled={!canProceed() || loading}
+            >
+              Continue
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSubmit}
+              disabled={!canProceed() || loading}
+            >
+              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Complete Setup
+            </Button>
           )}
         </div>
       </DialogContent>
