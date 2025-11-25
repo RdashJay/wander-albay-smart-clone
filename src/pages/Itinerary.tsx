@@ -409,7 +409,17 @@ const Itinerary = () => {
                     {scheduledItinerary
                       .filter(activity => activity.day === day)
                       .map((activity, index) => (
-                        <div key={index} className="ml-7 p-4 bg-muted/50 rounded-lg border border-border">
+                        <div 
+                          key={index} 
+                          className="ml-7 p-4 bg-muted/50 rounded-lg border border-border cursor-pointer hover:bg-muted transition-colors hover:shadow-md"
+                          onClick={() => {
+                            if (activity.spot.latitude && activity.spot.longitude) {
+                              navigate(`/map?lat=${activity.spot.latitude}&lng=${activity.spot.longitude}&name=${encodeURIComponent(activity.spot.name)}`);
+                            } else {
+                              toast.error("⚠️ Location coordinates not available for this spot");
+                            }
+                          }}
+                        >
                           <div className="flex items-start gap-4">
                             <div className="flex items-center gap-2 text-primary min-w-[140px]">
                               <Clock className="w-4 h-4" />
@@ -418,7 +428,12 @@ const Itinerary = () => {
                               </span>
                             </div>
                             <div className="flex-1">
-                              <h4 className="font-semibold text-lg mb-1">{activity.spot.name}</h4>
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-semibold text-lg">{activity.spot.name}</h4>
+                                {activity.spot.latitude && activity.spot.longitude && (
+                                  <span className="text-xs text-primary font-medium">🗺️ Click for route</span>
+                                )}
+                              </div>
                               {activity.spot.description && (
                                 <p className="text-sm text-muted-foreground mb-2">
                                   {activity.spot.description}
@@ -428,6 +443,11 @@ const Itinerary = () => {
                                 <MapPin className="w-3 h-3" />
                                 {activity.spot.location}
                               </div>
+                              {!activity.spot.latitude || !activity.spot.longitude && (
+                                <p className="text-xs text-destructive mt-2">
+                                  ⚠️ Location coordinates not available
+                                </p>
+                              )}
                             </div>
                           </div>
                         </div>
