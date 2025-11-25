@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Sparkles, Save, MapPin, Loader2, Calendar, Clock } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
+import ItineraryMap from "@/components/ItineraryMap";
 
 interface TouristSpot {
   id: string;
@@ -18,6 +19,8 @@ interface TouristSpot {
   municipality: string | null;
   category: string[];
   image_url: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 interface ScheduledActivity {
@@ -384,6 +387,18 @@ const Itinerary = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Map View */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-primary" />
+                    Destinations Map
+                  </h3>
+                  <ItineraryMap 
+                    spots={scheduledItinerary.map(activity => activity.spot)} 
+                  />
+                </div>
+
+                {/* Schedule Details */}
                 {Array.from(new Set(scheduledItinerary.map(s => s.day))).map((day) => (
                   <div key={day} className="space-y-4">
                     <div className="flex items-center gap-2 pb-2 border-b">
