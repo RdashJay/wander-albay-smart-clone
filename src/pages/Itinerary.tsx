@@ -4,6 +4,8 @@ import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -34,7 +36,7 @@ const Itinerary = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [session, setSession] = useState<Session | null>(null);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [recommendedSpots, setRecommendedSpots] = useState<TouristSpot[]>([]);
   const [selectedSpots, setSelectedSpots] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -63,8 +65,8 @@ const Itinerary = () => {
 
   useEffect(() => {
     const preselectedCategory = location.state?.preselectedCategory;
-    if (preselectedCategory && !selectedCategories.includes(preselectedCategory)) {
-      setSelectedCategories([preselectedCategory]);
+    if (preselectedCategory && !selectedCategory) {
+      setSelectedCategory(preselectedCategory);
     }
   }, [location.state]);
 
@@ -75,17 +77,9 @@ const Itinerary = () => {
     { name: "Food", icon: "🍜", description: "Local cuisine and restaurants" },
   ];
 
-  const toggleCategory = (category: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
-    );
-  };
-
   const generateItinerary = async () => {
-    if (selectedCategories.length === 0) {
-      toast.error("Please select at least one interest");
+    if (!selectedCategory) {
+      toast.error("Please select an interest");
       return;
     }
 
@@ -94,7 +88,7 @@ const Itinerary = () => {
     const { data, error } = await supabase
       .from("tourist_spots")
       .select("*")
-      .overlaps("category", selectedCategories);
+      .overlaps("category", [selectedCategory]);
 
     setIsGenerating(false);
 
@@ -198,8 +192,8 @@ const Itinerary = () => {
 
     const { error } = await supabase.from("itineraries").insert([{
       user_id: session.user.id,
-      name: `${selectedCategories.join(" & ")} Adventure`,
-      selected_categories: selectedCategories,
+      name: `${selectedCategory} Adventure`,
+      selected_categories: [selectedCategory],
       spots: selectedSpotsData as any,
       route: {
         schedule: scheduleData,
@@ -244,23 +238,14 @@ const Itinerary = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {categories.map((category) => (
-                  <div
-                    key={category.name}
-                    onClick={() => toggleCategory(category.name)}
-                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                      selectedCategories.includes(category.name)
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <Checkbox
-                        checked={selectedCategories.includes(category.name)}
-                        className="mt-1"
-                      />
-                      <div className="flex-1">
+              <RadioGroup value={selectedCategory} onValueChange={setSelectedCategory}>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {categories.map((category) => (
+                    <div key={category.name} className="flex items-center space-x-3 p-4 border-2 rounded-lg hover:bg-accent transition-all hover:shadow-md cursor-pointer"
+                      onClick={() => setSelectedCategory(category.name)}
+                    >
+                      <RadioGroupItem value={category.name} id={category.name} className="mt-1" />
+                      <Label htmlFor={category.name} className="cursor-pointer flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-2xl">{category.icon}</span>
                           <h3 className="font-semibold text-lg">{category.name}</h3>
@@ -268,17 +253,17 @@ const Itinerary = () => {
                         <p className="text-sm text-muted-foreground">
                           {category.description}
                         </p>
-                      </div>
+                      </Label>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </RadioGroup>
 
               <Button
                 onClick={generateItinerary}
                 className="w-full mt-6 gap-2"
                 size="lg"
-                disabled={isGenerating || selectedCategories.length === 0}
+                disabled={isGenerating || !selectedCategory}
               >
                 {isGenerating ? (
                   <>
