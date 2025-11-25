@@ -6,7 +6,6 @@ import {
   User,
   LogOut,
   Map,
-  Sparkles,
   Menu,
   X,
   Shield,
@@ -134,13 +133,6 @@ const Navbar = () => {
             {session && (
               <>
                 <Link
-                  to="/itinerary"
-                  className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  Build Itinerary
-                </Link>
-                <Link
                   to="/my-itinerary"
                   className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1"
                 >
@@ -245,14 +237,6 @@ const Navbar = () => {
 
             {session && (
               <>
-                <Link
-                  to="/itinerary"
-                  className="block px-4 py-2 text-sm font-medium hover:bg-muted rounded-lg"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <Sparkles className="w-4 h-4 inline mr-2" />
-                  Build Itinerary
-                </Link>
                 <Link
                   to="/my-itinerary"
                   className="block px-4 py-2 text-sm font-medium hover:bg-muted rounded-lg"

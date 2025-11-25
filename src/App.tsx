@@ -9,7 +9,6 @@ import Auth from "./pages/Auth";
 import Signup from "./pages/Signup";
 import VerifyOTP from "./pages/VerifyOTP";
 import Explore from "./pages/Explore";
-import Itinerary from "./pages/Itinerary";
 import MyItinerary from "./pages/MyItinerary";
 import RoutePage from "./pages/RoutePage";
 import Dashboard from "./pages/Dashboard";
@@ -46,7 +45,6 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/spot/:id" element={<SpotDetail />} />
-            <Route path="/itinerary" element={<Itinerary />} />
             <Route path="/my-itinerary" element={<MyItinerary />} />
             <Route path="/route" element={<RoutePage />} />
             <Route path="/dashboard" element={<Dashboard />} />
