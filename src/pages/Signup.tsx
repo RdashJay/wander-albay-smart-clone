@@ -150,6 +150,7 @@ export default function Signup() {
                   <SelectValue placeholder="Select suffix (optional)" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="">None</SelectItem>
                   <SelectItem value="Jr.">Jr.</SelectItem>
                   <SelectItem value="Sr.">Sr.</SelectItem>
                   <SelectItem value="II">II</SelectItem>
