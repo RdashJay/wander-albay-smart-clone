@@ -25,6 +25,7 @@ interface TouristSpot {
   location: string;
   municipality: string | null;
   category: string[];
+  subcategories: string[];
   image_url: string | null;
   rating: number;
 }
@@ -155,12 +156,12 @@ const Explore = () => {
       );
     }
 
-    // Subcategory filter - now using the subcategories field
+    // Subcategory filter
     if (selectedSubcategory !== "all") {
       filtered = filtered.filter((spot) => {
-        const spotSubcategories = (spot as any).subcategories || [];
+        const spotSubcategories = spot.subcategories || [];
         return spotSubcategories.some((subcat: string) => 
-          subcat.toLowerCase() === selectedSubcategory.toLowerCase()
+          subcat === selectedSubcategory
         );
       });
     }

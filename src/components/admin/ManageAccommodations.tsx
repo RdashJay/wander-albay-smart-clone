@@ -17,6 +17,7 @@ interface Accommodation {
   location: string;
   municipality: string | null;
   category: string[] | null;
+  subcategories: string[] | null;
   image_url: string | null;
   contact_number: string | null;
   email: string | null;
@@ -273,7 +274,7 @@ const ManageAccommodations = () => {
       location: accommodation.location,
       municipality: accommodation.municipality || "",
       category: accommodation.category || [],
-      subcategories: (accommodation as any).subcategories || [],
+      subcategories: accommodation.subcategories || [],
       image_url: accommodation.image_url || "",
       contact_number: accommodation.contact_number || "",
       email: accommodation.email || "",

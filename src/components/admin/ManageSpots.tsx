@@ -33,6 +33,7 @@ interface TouristSpot {
   location: string;
   municipality: string | null;
   category: string[];
+  subcategories: string[];
   spot_type: string[];
   contact_number: string | null;
   image_url: string | null;
@@ -307,7 +308,6 @@ const ManageSpots = () => {
     }
   };
 
-  // Reactivate handleEdit
   const handleEdit = (spot: TouristSpot) => {
     setEditingSpot(spot);
     setFormData({
@@ -316,7 +316,7 @@ const ManageSpots = () => {
       location: spot.location,
       municipality: spot.municipality || "",
       category: spot.category,
-      subcategories: (spot as any).subcategories || [],
+      subcategories: spot.subcategories || [],
       spot_type: spot.spot_type || [],
       contact_number: spot.contact_number || "",
       image_url: spot.image_url || "",
