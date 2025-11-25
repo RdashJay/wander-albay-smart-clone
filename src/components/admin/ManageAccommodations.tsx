@@ -35,9 +35,18 @@ interface Barangay {
   name: string;
 }
 
-const CATEGORY_OPTIONS = ["Luxury","Mid-range", "Budget",  
-                          "Resort", "Hotel", "Hostel","Beach Resort", "All-Inclusive", 
-];
+interface Subcategory {
+  id: string;
+  name: string;
+  category_id: string | null;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  icon: string | null;
+}
+
 const AMENITIES_OPTIONS = ["WiFi", "Pool", "Airconditioning", "Room Service", "Parking", "Gym",
                           "Lounges", "Conference Room", "Massage", "Restaurant", "Well Program",
                           "Function Hall", "Bar"
@@ -48,6 +57,8 @@ const ManageAccommodations = () => {
   const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
 
   const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
   const [barangays, setBarangays] = useState<Barangay[]>([]);
@@ -58,6 +69,7 @@ const ManageAccommodations = () => {
     location: "",
     municipality: "",
     category: [] as string[],
+    subcategories: [] as string[],
     image_url: "",
     contact_number: "",
     email: "",
@@ -72,7 +84,31 @@ const ManageAccommodations = () => {
   useEffect(() => {
     fetchAccommodations();
     fetchMunicipalities();
+    fetchCategories();
+    fetchSubcategories();
   }, []);
+
+  const fetchCategories = async () => {
+    const { data, error } = await supabase
+      .from("categories")
+      .select("*")
+      .order("name");
+
+    if (!error && data) {
+      setCategories(data);
+    }
+  };
+
+  const fetchSubcategories = async () => {
+    const { data, error } = await supabase
+      .from("subcategories")
+      .select("*")
+      .order("name");
+
+    if (!error && data) {
+      setSubcategories(data);
+    }
+  };
 
   const fetchAccommodations = async () => {
     const { data, error } = await supabase.from("accommodations").select("*").order("name");
@@ -177,6 +213,7 @@ const ManageAccommodations = () => {
       location: "",
       municipality: "",
       category: [],
+      subcategories: [],
       image_url: "",
       contact_number: "",
       email: "",
@@ -206,6 +243,7 @@ const ManageAccommodations = () => {
       ...formData,
       image_url: imageUrl,
       category: formData.category.length ? formData.category : null,
+      subcategories: formData.subcategories.length ? formData.subcategories : null,
       amenities: formData.amenities.length ? formData.amenities : null,
     };
 
@@ -235,6 +273,7 @@ const ManageAccommodations = () => {
       location: accommodation.location,
       municipality: accommodation.municipality || "",
       category: accommodation.category || [],
+      subcategories: (accommodation as any).subcategories || [],
       image_url: accommodation.image_url || "",
       contact_number: accommodation.contact_number || "",
       email: accommodation.email || "",
@@ -363,11 +402,42 @@ const ManageAccommodations = () => {
                     <SelectValue placeholder={formData.category.length ? formData.category.join(", ") : "Select categories"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {CATEGORY_OPTIONS.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.name}>
                         <div className="flex items-center gap-2">
-                          <input type="checkbox" checked={formData.category.includes(cat)} readOnly />
-                          <span>{cat}</span>
+                          <input type="checkbox" checked={formData.category.includes(cat.name)} readOnly />
+                          <span>{cat.icon} {cat.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Subcategories Multi-select */}
+              <div>
+                <Label htmlFor="subcategories">Subcategories</Label>
+                <Select
+                  onValueChange={(value) => {
+                    setFormData((prev) => {
+                      const alreadySelected = prev.subcategories.includes(value);
+                      const updated = alreadySelected
+                        ? prev.subcategories.filter((s) => s !== value)
+                        : [...prev.subcategories, value];
+                      return { ...prev, subcategories: updated };
+                    });
+                  }}
+                  value=""
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={formData.subcategories.length ? formData.subcategories.join(", ") : "Select subcategories"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subcategories.map((subcat) => (
+                      <SelectItem key={subcat.id} value={subcat.name}>
+                        <div className="flex items-center gap-2">
+                          <input type="checkbox" checked={formData.subcategories.includes(subcat.name)} readOnly />
+                          <span>{subcat.name}</span>
                         </div>
                       </SelectItem>
                     ))}

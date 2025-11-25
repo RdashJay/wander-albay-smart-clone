@@ -69,8 +69,9 @@ const ManageSpots = () => {
     description: "",
     location: "",
     municipality: "",
-    category: [] as string[],  // Changed 'categories' to 'category'
-    spot_type: [] as string[],  // Ensure 'spot_type' is an array
+    category: [] as string[],
+    subcategories: [] as string[],  // Added subcategories
+    spot_type: [] as string[],
     contact_number: "",
     image_url: "",
     is_hidden_gem: false,
@@ -79,14 +80,25 @@ const ManageSpots = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
-
-  const availableCategories = ["Nature", "Culture", "Adventure", "Food", "Beach", "Heritage"];
+  const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
     fetchSpots();
     fetchMunicipalities();
+    fetchCategories();
     fetchSubcategories();
   }, []);
+
+  const fetchCategories = async () => {
+    const { data, error } = await supabase
+      .from("categories")
+      .select("*")
+      .order("name");
+
+    if (!error && data) {
+      setCategories(data);
+    }
+  };
 
   const fetchSpots = async () => {
     const { data, error } = await supabase.from("tourist_spots").select("*").order("name");
@@ -171,6 +183,15 @@ const ManageSpots = () => {
       category: prev.category.includes(category)
         ? prev.category.filter((c) => c !== category)
         : [...prev.category, category],
+    }));
+  };
+
+  const toggleSubcategory = (subcategory: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      subcategories: prev.subcategories.includes(subcategory)
+        ? prev.subcategories.filter((s) => s !== subcategory)
+        : [...prev.subcategories, subcategory],
     }));
   };
 
@@ -261,6 +282,7 @@ const ManageSpots = () => {
         location: formData.location,
         municipality: formData.municipality || null,
         category: formData.category.length ? formData.category : null,
+        subcategories: formData.subcategories.length ? formData.subcategories : null,
         spot_type: formData.spot_type.length ? formData.spot_type : null,
         contact_number: formData.contact_number || null,
         image_url: imageUrl,
@@ -294,6 +316,7 @@ const ManageSpots = () => {
       location: spot.location,
       municipality: spot.municipality || "",
       category: spot.category,
+      subcategories: (spot as any).subcategories || [],
       spot_type: spot.spot_type || [],
       contact_number: spot.contact_number || "",
       image_url: spot.image_url || "",
@@ -312,6 +335,7 @@ const ManageSpots = () => {
       location: "",
       municipality: "",
       category: [],
+      subcategories: [],
       spot_type: [],
       contact_number: "",
       image_url: "",
@@ -472,24 +496,56 @@ const ManageSpots = () => {
               <div>
                 <Label className="mb-3 block">Categories *</Label>
                 <div className="grid grid-cols-2 gap-3">
-                  {availableCategories.map((category) => (
+                  {categories.map((category) => (
                     <div
-                      key={category}
+                      key={category.id}
                       className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted"
                     >
                       <Checkbox
-                        checked={formData.category.includes(category)}
-                        onCheckedChange={() => toggleCategory(category)}
+                        checked={formData.category.includes(category.name)}
+                        onCheckedChange={() => toggleCategory(category.name)}
                       />
-                      <label className="cursor-pointer select-none">{category}</label>
+                      <label className="cursor-pointer select-none">
+                        {category.icon} {category.name}
+                      </label>
                     </div>
                   ))}
                 </div>
               </div>
 
+              {/* Subcategories */}
+              <div>
+                <Label className="mb-3 block">Subcategories</Label>
+                <div className="grid grid-cols-2 gap-3 max-h-40 overflow-y-auto border rounded p-2">
+                  {subcategories.map((subcategory) => (
+                    <div
+                      key={subcategory.id}
+                      className="flex items-center space-x-2 p-2 hover:bg-muted rounded"
+                    >
+                      <Checkbox
+                        checked={formData.subcategories.includes(subcategory.name)}
+                        onCheckedChange={() => toggleSubcategory(subcategory.name)}
+                      />
+                      <label className="cursor-pointer select-none text-sm">
+                        {subcategory.name}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                {formData.subcategories.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {formData.subcategories.map((sub) => (
+                      <Badge key={sub} variant="secondary">
+                        {sub}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* Spot Type (Subcategories) Dropdown */}
               <div>
-                <Label className="mb-3 block">Spot Type (Subcategories)</Label>
+                <Label className="mb-3 block">Spot Type (Optional)</Label>
                 <Select onValueChange={(value) => toggleSpotType(value)} value="">
                   <SelectTrigger>
                     <SelectValue

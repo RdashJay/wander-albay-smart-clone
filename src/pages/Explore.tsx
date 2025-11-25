@@ -151,15 +151,18 @@ const Explore = () => {
     // Category filter
     if (selectedCategory !== "all") {
       filtered = filtered.filter((spot) =>
-        spot.category.some((cat) => cat.toLowerCase().includes(selectedCategory.toLowerCase()))
+        spot.category.some((cat) => cat === selectedCategory)
       );
     }
 
-    // Subcategory filter
+    // Subcategory filter - now using the subcategories field
     if (selectedSubcategory !== "all") {
-      filtered = filtered.filter((spot) =>
-        spot.category.some((cat) => cat.toLowerCase().includes(selectedSubcategory.toLowerCase()))
-      );
+      filtered = filtered.filter((spot) => {
+        const spotSubcategories = (spot as any).subcategories || [];
+        return spotSubcategories.some((subcat: string) => 
+          subcat.toLowerCase() === selectedSubcategory.toLowerCase()
+        );
+      });
     }
 
     setFilteredSpots(filtered);

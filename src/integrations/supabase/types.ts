@@ -31,6 +31,7 @@ export type Database = {
           name: string
           price_range: string | null
           rating: number | null
+          subcategories: string[] | null
           updated_at: string
         }
         Insert: {
@@ -49,6 +50,7 @@ export type Database = {
           name: string
           price_range?: string | null
           rating?: number | null
+          subcategories?: string[] | null
           updated_at?: string
         }
         Update: {
@@ -67,6 +69,7 @@ export type Database = {
           name?: string
           price_range?: string | null
           rating?: number | null
+          subcategories?: string[] | null
           updated_at?: string
         }
         Relationships: []
@@ -414,6 +417,7 @@ export type Database = {
           rating: number | null
           scenery_type: string[] | null
           spot_type: string[] | null
+          subcategories: string[] | null
           updated_at: string
         }
         Insert: {
@@ -434,6 +438,7 @@ export type Database = {
           rating?: number | null
           scenery_type?: string[] | null
           spot_type?: string[] | null
+          subcategories?: string[] | null
           updated_at?: string
         }
         Update: {
@@ -454,6 +459,7 @@ export type Database = {
           rating?: number | null
           scenery_type?: string[] | null
           spot_type?: string[] | null
+          subcategories?: string[] | null
           updated_at?: string
         }
         Relationships: []
