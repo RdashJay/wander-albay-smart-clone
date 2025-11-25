@@ -5,13 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { z } from "zod";
 
 const signupSchema = z.object({
-  contact: z.string().min(1, "Contact is required"),
+  email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string(),
   fullName: z.string().min(2, "Full name is required"),
@@ -22,8 +21,7 @@ const signupSchema = z.object({
 
 export default function Signup() {
   const navigate = useNavigate();
-  const [contactType, setContactType] = useState<'email' | 'phone'>('email');
-  const [contact, setContact] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -38,49 +36,34 @@ export default function Signup() {
     try {
       // Validate input
       const validatedData = signupSchema.parse({
-        contact,
+        email,
         password,
         confirmPassword,
         fullName,
       });
 
-      // Check if user already exists in Supabase Auth
-      if (contactType === 'email') {
-        const { data: existingUser } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', validatedData.contact)
-          .maybeSingle();
-        
-        if (existingUser) {
-          toast.error('An account with this email already exists. Please login instead.');
-          setIsLoading(false);
-          return;
+      // Sign up with Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email: validatedData.email,
+        password: validatedData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            full_name: validatedData.fullName,
+          }
         }
-      }
-
-      // Send OTP
-      const response = await supabase.functions.invoke('send-otp', {
-        body: {
-          contact: validatedData.contact,
-          contactType,
-        },
       });
 
-      if (response.error) {
-        throw new Error(response.error.message || 'Failed to send OTP');
+      if (error) {
+        toast.error(error.message);
+        setIsLoading(false);
+        return;
       }
 
-      // Store signup data in session storage for OTP verification
-      sessionStorage.setItem('signup_data', JSON.stringify({
-        contact: validatedData.contact,
-        password: validatedData.password,
-        fullName: validatedData.fullName,
-        contactType,
-      }));
-
-      toast.success(`Verification code sent to your ${contactType}!`);
-      navigate('/verify-otp');
+      if (data.user) {
+        toast.success("Verification email sent! Check your inbox.");
+        navigate("/email-verification");
+      }
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         error.errors.forEach((err) => {
@@ -88,7 +71,7 @@ export default function Signup() {
         });
       } else {
         console.error('Signup error:', error);
-        toast.error(error.message || 'Failed to send verification code. Please try again.');
+        toast.error(error.message || 'Failed to create account. Please try again.');
       }
     } finally {
       setIsLoading(false);
@@ -106,31 +89,6 @@ export default function Signup() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label>Sign up with</Label>
-              <RadioGroup
-                value={contactType}
-                onValueChange={(value) => setContactType(value as 'email' | 'phone')}
-                className="flex gap-4"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="email" id="email" />
-                  <Label htmlFor="email" className="cursor-pointer">Email</Label>
-                </div>
-                <div className="flex items-center space-x-2 opacity-50">
-                  <RadioGroupItem value="phone" id="phone" disabled />
-                  <Label htmlFor="phone" className="cursor-not-allowed">
-                    Phone (Coming Soon)
-                  </Label>
-                </div>
-              </RadioGroup>
-              {contactType === 'phone' && (
-                <p className="text-xs text-muted-foreground">
-                  SMS verification is temporarily unavailable. Please use email.
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="fullName">Full Name</Label>
               <Input
                 id="fullName"
@@ -143,15 +101,13 @@ export default function Signup() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="contact">
-                {contactType === 'email' ? 'Email Address' : 'Phone Number'}
-              </Label>
+              <Label htmlFor="email">Email Address</Label>
               <Input
-                id="contact"
-                type={contactType === 'email' ? 'email' : 'tel'}
-                placeholder={contactType === 'email' ? 'you@example.com' : '+63 912 345 6789'}
-                value={contact}
-                onChange={(e) => setContact(e.target.value)}
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -206,10 +162,10 @@ export default function Signup() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending Code...
+                  Creating Account...
                 </>
               ) : (
-                'Send Verification Code'
+                'Create Account'
               )}
             </Button>
 
