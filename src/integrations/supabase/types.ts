@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           amenities: string[] | null
           category: string[] | null
+          category_id: string | null
           contact_number: string | null
           created_at: string
           description: string | null
@@ -32,11 +33,13 @@ export type Database = {
           price_range: string | null
           rating: number | null
           subcategories: string[] | null
+          subcategory_id: string | null
           updated_at: string
         }
         Insert: {
           amenities?: string[] | null
           category?: string[] | null
+          category_id?: string | null
           contact_number?: string | null
           created_at?: string
           description?: string | null
@@ -51,11 +54,13 @@ export type Database = {
           price_range?: string | null
           rating?: number | null
           subcategories?: string[] | null
+          subcategory_id?: string | null
           updated_at?: string
         }
         Update: {
           amenities?: string[] | null
           category?: string[] | null
+          category_id?: string | null
           contact_number?: string | null
           created_at?: string
           description?: string | null
@@ -70,9 +75,25 @@ export type Database = {
           price_range?: string | null
           rating?: number | null
           subcategories?: string[] | null
+          subcategory_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "accommodations_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodations_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "subcategories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       categories: {
         Row: {
@@ -403,6 +424,7 @@ export type Database = {
           accessibility_friendly: boolean | null
           budget_level: string | null
           category: string[] | null
+          category_id: string | null
           contact_number: string | null
           created_at: string
           description: string | null
@@ -418,12 +440,14 @@ export type Database = {
           scenery_type: string[] | null
           spot_type: string[] | null
           subcategories: string[] | null
+          subcategory_id: string | null
           updated_at: string
         }
         Insert: {
           accessibility_friendly?: boolean | null
           budget_level?: string | null
           category?: string[] | null
+          category_id?: string | null
           contact_number?: string | null
           created_at?: string
           description?: string | null
@@ -439,12 +463,14 @@ export type Database = {
           scenery_type?: string[] | null
           spot_type?: string[] | null
           subcategories?: string[] | null
+          subcategory_id?: string | null
           updated_at?: string
         }
         Update: {
           accessibility_friendly?: boolean | null
           budget_level?: string | null
           category?: string[] | null
+          category_id?: string | null
           contact_number?: string | null
           created_at?: string
           description?: string | null
@@ -460,9 +486,25 @@ export type Database = {
           scenery_type?: string[] | null
           spot_type?: string[] | null
           subcategories?: string[] | null
+          subcategory_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tourist_spots_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tourist_spots_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "subcategories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
