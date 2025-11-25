@@ -70,7 +70,8 @@ const Auth = () => {
         if (error.message.includes('Invalid login credentials')) {
           toast.error("Invalid email or password. Please check your credentials.");
         } else if (error.message.includes('Email not confirmed')) {
-          toast.error("Please verify your email before logging in.");
+          toast.error("Please verify your email before logging in. Check your inbox.");
+          navigate("/email-verification");
         } else if (error.message.includes('User not found')) {
           toast.error("No account found with this email. Please sign up first.");
         } else {
@@ -80,6 +81,14 @@ const Auth = () => {
       }
 
       if (data.user) {
+        // Check if email is verified
+        if (!data.user.email_confirmed_at) {
+          await supabase.auth.signOut();
+          toast.error("Please verify your email before logging in. Check your inbox.");
+          navigate("/email-verification");
+          return;
+        }
+        
         toast.success("Welcome back to Wanderer!");
         // Navigation happens via useEffect watching session state
       }
