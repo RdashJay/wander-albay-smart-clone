@@ -56,18 +56,30 @@ const Dashboard = () => {
   }, [navigate]);
 
   const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
+    console.log('Fetching profile for user:', userId);
+    const { data, error } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", userId)
       .single();
     
+    console.log('Profile data:', data);
+    console.log('Profile error:', error);
+    
     if (data) {
       setProfile(data);
+      console.log('Onboarding complete status:', data.onboarding_complete);
+      console.log('User preferences:', data.user_preferences);
+      
       // Show onboarding if user hasn't completed it
       if (!data.onboarding_complete) {
+        console.log('Showing onboarding modal');
         setShowOnboarding(true);
+      } else {
+        console.log('Onboarding already completed, skipping modal');
       }
+    } else {
+      console.log('No profile found for user');
     }
   };
 
