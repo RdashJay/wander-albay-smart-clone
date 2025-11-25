@@ -10,6 +10,8 @@ import Signup from "./pages/Signup";
 import VerifyOTP from "./pages/VerifyOTP";
 import Explore from "./pages/Explore";
 import Itinerary from "./pages/Itinerary";
+import MyItinerary from "./pages/MyItinerary";
+import RoutePage from "./pages/RoutePage";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import MapPage from "./pages/MapPage";
@@ -41,6 +43,8 @@ const App = () => (
             <Route path="/explore" element={<Explore />} />
             <Route path="/spot/:id" element={<SpotDetail />} />
             <Route path="/itinerary" element={<Itinerary />} />
+            <Route path="/my-itinerary" element={<MyItinerary />} />
+            <Route path="/route" element={<RoutePage />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/map" element={<MapPage />} />

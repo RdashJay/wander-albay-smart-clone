@@ -132,13 +132,22 @@ const Navbar = () => {
             <WeatherDialog />
 
             {session && (
-              <Link
-                to="/itinerary"
-                className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1"
-              >
-                <Sparkles className="w-4 h-4" />
-                Build Itinerary
-              </Link>
+              <>
+                <Link
+                  to="/itinerary"
+                  className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Build Itinerary
+                </Link>
+                <Link
+                  to="/my-itinerary"
+                  className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1"
+                >
+                  <Map className="w-4 h-4" />
+                  My Itineraries
+                </Link>
+              </>
             )}
 
             <Link
@@ -243,6 +252,14 @@ const Navbar = () => {
                 >
                   <Sparkles className="w-4 h-4 inline mr-2" />
                   Build Itinerary
+                </Link>
+                <Link
+                  to="/my-itinerary"
+                  className="block px-4 py-2 text-sm font-medium hover:bg-muted rounded-lg"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Map className="w-4 h-4 inline mr-2" />
+                  My Itineraries
                 </Link>
                 {isAdmin && (
                   <Link
