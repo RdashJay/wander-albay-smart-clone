@@ -16,6 +16,7 @@ import RecommendedSpots from "@/components/RecommendedSpots";
 import EventNotifications from "@/components/EventNotifications";
 import NearbyRestaurants from "@/components/NearbyRestaurants";
 import WeatherWidget from "@/components/WeatherWidget";
+import { RecommendedAccommodations } from "@/components/RecommendedAccommodations";
 
 interface Itinerary {
   id: string;
@@ -207,6 +208,14 @@ const Dashboard = () => {
                 userId={session?.user?.id}
               />
             </div>
+          )}
+
+          {/* Recommended Accommodations */}
+          {profile?.user_preferences && (
+            <RecommendedAccommodations
+              preferences={profile.user_preferences}
+              userId={session?.user?.id}
+            />
           )}
 
           {/* Nearby Restaurants */}
