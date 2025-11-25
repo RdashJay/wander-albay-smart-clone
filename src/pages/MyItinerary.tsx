@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { MapPin, Navigation, Trash2, Loader2, Calendar, AlertCircle } from "lucide-react";
+import { MapPin, Navigation, Trash2, Loader2, Calendar, AlertCircle, Plus } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
+import { CreateItineraryModal } from "@/components/CreateItineraryModal";
 
 interface SavedSpot {
   id: string;
@@ -35,6 +36,7 @@ const MyItinerary = () => {
   const [itineraries, setItineraries] = useState<SavedItinerary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -144,8 +146,8 @@ const MyItinerary = () => {
                 View your saved travel plans and get directions to your destinations
               </p>
             </div>
-            <Button onClick={() => navigate("/itinerary")} className="gap-2">
-              <Calendar className="w-4 h-4" />
+            <Button onClick={() => setShowCreateModal(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
               Create New
             </Button>
           </div>
@@ -158,8 +160,8 @@ const MyItinerary = () => {
                 <p className="text-muted-foreground mb-6">
                   Start planning your adventure by creating your first itinerary
                 </p>
-                <Button onClick={() => navigate("/itinerary")} className="gap-2">
-                  <Calendar className="w-4 h-4" />
+                <Button onClick={() => setShowCreateModal(true)} className="gap-2">
+                  <Plus className="w-4 h-4" />
                   Create Itinerary
                 </Button>
               </div>
@@ -279,6 +281,15 @@ const MyItinerary = () => {
           )}
         </div>
       </div>
+
+      {session?.user && (
+        <CreateItineraryModal
+          open={showCreateModal}
+          onOpenChange={setShowCreateModal}
+          onSuccess={fetchItineraries}
+          userId={session.user.id}
+        />
+      )}
     </div>
   );
 };
