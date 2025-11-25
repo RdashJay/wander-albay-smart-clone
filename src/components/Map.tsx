@@ -379,7 +379,13 @@ const Map = ({ autoDestination = null, hideSearchBar = false }: MapProps) => {
           )}
           {destination && (
             <Marker position={destination} icon={markerIcon}>
-              <Popup>{destinationName || "Destination"}</Popup>
+              <Popup>
+                <div style={{ padding: "8px", maxWidth: "200px" }}>
+                  <strong style={{ display: "block", marginBottom: "8px", color: "#000" }}>
+                    {destinationName || "Destination"}
+                  </strong>
+                </div>
+              </Popup>
             </Marker>
           )}
           {route.length > 0 && <Polyline positions={route} color="#38bdf8" weight={5} />}
