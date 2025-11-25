@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, UserX, Shield, UserPlus } from "lucide-react";
+import { Loader2, UserX, Shield, UserPlus, Eye, EyeOff } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -51,10 +51,16 @@ const UserManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [newUser, setNewUser] = useState({
+    firstName: "",
+    lastName: "",
+    middleInitial: "",
+    suffix: "",
     email: "",
     password: "",
-    fullName: "",
+    confirmPassword: "",
     role: "user",
   });
   const { toast } = useToast();
@@ -120,10 +126,28 @@ const UserManagement = () => {
   };
 
   const handleCreateUser = async () => {
-    if (!newUser.email || !newUser.password || !newUser.fullName) {
+    if (!newUser.email || !newUser.password || !newUser.firstName || !newUser.lastName) {
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newUser.password !== newUser.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newUser.middleInitial && newUser.middleInitial.length > 1) {
+      toast({
+        title: "Error",
+        description: "Middle initial must be only 1 character",
         variant: "destructive",
       });
       return;
@@ -158,7 +182,16 @@ const UserManagement = () => {
       });
 
       setIsCreateDialogOpen(false);
-      setNewUser({ email: "", password: "", fullName: "", role: "user" });
+      setNewUser({ 
+        firstName: "",
+        lastName: "",
+        middleInitial: "",
+        suffix: "",
+        email: "", 
+        password: "", 
+        confirmPassword: "",
+        role: "user" 
+      });
       fetchUsers();
     } catch (error) {
       toast({
@@ -203,33 +236,110 @@ const UserManagement = () => {
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <Label htmlFor="firstName">First Name</Label>
                   <Input
-                    id="fullName"
-                    value={newUser.fullName}
-                    onChange={(e) => setNewUser({ ...newUser, fullName: e.target.value })}
-                    placeholder="John Doe"
+                    id="firstName"
+                    value={newUser.firstName}
+                    onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })}
+                    placeholder="John"
+                    required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    value={newUser.lastName}
+                    onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
+                    placeholder="Doe"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="middleInitial">Middle Initial</Label>
+                  <Input
+                    id="middleInitial"
+                    value={newUser.middleInitial}
+                    onChange={(e) => setNewUser({ ...newUser, middleInitial: e.target.value.slice(0, 1) })}
+                    placeholder="Optional"
+                    maxLength={1}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="suffix">Suffix</Label>
+                  <Select
+                    value={newUser.suffix}
+                    onValueChange={(value) => setNewUser({ ...newUser, suffix: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="None" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="Jr.">Jr.</SelectItem>
+                      <SelectItem value="Sr.">Sr.</SelectItem>
+                      <SelectItem value="II">II</SelectItem>
+                      <SelectItem value="III">III</SelectItem>
+                      <SelectItem value="IV">IV</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
                   <Input
                     id="email"
                     type="email"
                     value={newUser.email}
                     onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                     placeholder="user@example.com"
+                    required
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={newUser.password}
-                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                    placeholder="••••••••"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={newUser.password}
+                      onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                      placeholder="••••••••"
+                      required
+                      minLength={6}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={newUser.confirmPassword}
+                      onChange={(e) => setNewUser({ ...newUser, confirmPassword: e.target.value })}
+                      placeholder="••••••••"
+                      required
+                      minLength={6}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="role">Role</Label>

@@ -228,10 +228,14 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          first_name: string | null
           full_name: string | null
           id: string
+          last_name: string | null
+          middle_initial: string | null
           onboarding_answers: Json | null
           onboarding_complete: boolean | null
+          suffix: string | null
           updated_at: string
           user_preferences: Json | null
         }
@@ -239,10 +243,14 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          first_name?: string | null
           full_name?: string | null
           id: string
+          last_name?: string | null
+          middle_initial?: string | null
           onboarding_answers?: Json | null
           onboarding_complete?: boolean | null
+          suffix?: string | null
           updated_at?: string
           user_preferences?: Json | null
         }
@@ -250,10 +258,14 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          first_name?: string | null
           full_name?: string | null
           id?: string
+          last_name?: string | null
+          middle_initial?: string | null
           onboarding_answers?: Json | null
           onboarding_complete?: boolean | null
+          suffix?: string | null
           updated_at?: string
           user_preferences?: Json | null
         }

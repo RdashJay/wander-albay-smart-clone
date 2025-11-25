@@ -50,14 +50,23 @@ serve(async (req) => {
       });
     }
 
-    const { email, password, fullName, role } = await req.json();
+    const { email, password, firstName, lastName, middleInitial, suffix, role } = await req.json();
+
+    // Construct full name
+    const fullName = `${firstName} ${middleInitial ? middleInitial + '. ' : ''}${lastName}${suffix ? ' ' + suffix : ''}`.trim();
 
     // Create the user
     const { data: newUser, error: createError } = await supabaseClient.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: { full_name: fullName },
+      user_metadata: { 
+        first_name: firstName,
+        last_name: lastName,
+        middle_initial: middleInitial || null,
+        suffix: suffix || null,
+        full_name: fullName 
+      },
     });
 
     if (createError) {

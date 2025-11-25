@@ -5,15 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { z } from "zod";
 
 const signupSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  middleInitial: z.string().max(1, "Middle initial must be 1 character").optional(),
+  suffix: z.string().optional(),
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string(),
-  fullName: z.string().min(2, "Full name is required"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -21,10 +25,13 @@ const signupSchema = z.object({
 
 export default function Signup() {
   const navigate = useNavigate();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [middleInitial, setMiddleInitial] = useState("");
+  const [suffix, setSuffix] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,11 +43,17 @@ export default function Signup() {
     try {
       // Validate input
       const validatedData = signupSchema.parse({
+        firstName,
+        lastName,
+        middleInitial,
+        suffix,
         email,
         password,
         confirmPassword,
-        fullName,
       });
+
+      // Construct full name
+      const fullName = `${validatedData.firstName} ${validatedData.middleInitial ? validatedData.middleInitial + '. ' : ''}${validatedData.lastName}${validatedData.suffix ? ' ' + validatedData.suffix : ''}`.trim();
 
       // Sign up with Supabase Auth
       const redirectUrl = `${window.location.origin}/verified`;
@@ -51,7 +64,11 @@ export default function Signup() {
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            full_name: validatedData.fullName,
+            first_name: validatedData.firstName,
+            last_name: validatedData.lastName,
+            middle_initial: validatedData.middleInitial || null,
+            suffix: validatedData.suffix || null,
+            full_name: fullName,
           }
         }
       });
@@ -91,15 +108,56 @@ export default function Signup() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
+              <Label htmlFor="firstName">First Name</Label>
               <Input
-                id="fullName"
+                id="firstName"
                 type="text"
-                placeholder="Juan Dela Cruz"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Juan"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                type="text"
+                placeholder="Dela Cruz"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="middleInitial">Middle Initial</Label>
+              <Input
+                id="middleInitial"
+                type="text"
+                placeholder="M (Optional)"
+                value={middleInitial}
+                onChange={(e) => setMiddleInitial(e.target.value.slice(0, 1))}
+                maxLength={1}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="suffix">Suffix</Label>
+              <Select value={suffix} onValueChange={setSuffix}>
+                <SelectTrigger>
+                  <SelectValue placeholder="None" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="Jr.">Jr.</SelectItem>
+                  <SelectItem value="Sr.">Sr.</SelectItem>
+                  <SelectItem value="II">II</SelectItem>
+                  <SelectItem value="III">III</SelectItem>
+                  <SelectItem value="IV">IV</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
