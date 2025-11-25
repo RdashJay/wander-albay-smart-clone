@@ -5,14 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Mail, RefreshCw, ArrowRight } from "lucide-react";
+import { Mail, RefreshCw } from "lucide-react";
 
 const EmailVerification = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
   const [isResending, setIsResending] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
     // Get email from session or localStorage
@@ -61,29 +59,6 @@ const EmailVerification = () => {
     }
   };
 
-  const handleVerifyOtp = async () => {
-    if (!email || !otp) {
-      toast.error("Please enter the verification code.");
-      return;
-    }
-
-    setIsVerifying(true);
-    const { error } = await supabase.auth.verifyOtp({
-      email,
-      token: otp,
-      type: 'signup'
-    });
-
-    setIsVerifying(false);
-
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success("Email verified successfully!");
-      navigate("/");
-    }
-  };
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/auth");
@@ -98,7 +73,7 @@ const EmailVerification = () => {
           </div>
           <CardTitle className="text-2xl">Verify Your Email</CardTitle>
           <CardDescription className="text-base">
-            📩 We've sent a verification link and code to:
+            📩 We've sent a verification link to:
             <br />
             <span className="font-semibold text-foreground">{email}</span>
           </CardDescription>
@@ -106,48 +81,14 @@ const EmailVerification = () => {
 
         <CardContent className="space-y-6">
           <div className="space-y-4">
-            <div>
-              <p className="text-sm text-muted-foreground mb-3">
-                Click the link in your email, or enter the 6-digit code below:
+            <div className="bg-muted/50 p-4 rounded-lg border border-border">
+              <p className="text-sm text-muted-foreground text-center">
+                Please click the verification link in your email to confirm your account.
               </p>
-              <Input
-                type="text"
-                placeholder="Enter 6-digit code"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                maxLength={6}
-                className="text-center text-2xl tracking-widest font-mono"
-              />
             </div>
-
-            <Button 
-              onClick={handleVerifyOtp} 
-              className="w-full"
-              disabled={isVerifying || otp.length !== 6}
-            >
-              {isVerifying ? (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  Verifying...
-                </>
-              ) : (
-                <>
-                  Verify & Continue
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </Button>
           </div>
 
           <div className="space-y-3">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">Or</span>
-              </div>
-            </div>
 
             <Button
               variant="outline"
@@ -178,7 +119,7 @@ const EmailVerification = () => {
           </div>
 
           <p className="text-xs text-center text-muted-foreground">
-            Didn't receive the email? Check your spam folder or resend.
+            Didn't receive the email? Check your spam folder or click resend above.
           </p>
         </CardContent>
       </Card>

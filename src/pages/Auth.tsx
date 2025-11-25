@@ -205,7 +205,7 @@ const Auth = () => {
                 </div>
                 <Link to="/signup">
                   <Button variant="outline" className="w-full" type="button">
-                    Create Account with OTP
+                    Create Account
                   </Button>
                 </Link>
               </div>

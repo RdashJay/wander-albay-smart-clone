@@ -7,7 +7,6 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Signup from "./pages/Signup";
-import VerifyOTP from "./pages/VerifyOTP";
 import Explore from "./pages/Explore";
 import MyItinerary from "./pages/MyItinerary";
 import RoutePage from "./pages/RoutePage";
@@ -36,7 +35,6 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/verify-otp" element={<VerifyOTP />} />
             <Route path="/verify-email" element={<EmailVerification />} />
             <Route path="/email-verification" element={<EmailVerification />} />
             <Route path="/auth/verify" element={<Verified />} />
