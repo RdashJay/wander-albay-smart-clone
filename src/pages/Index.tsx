@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
 import HiddenGemsSection from "@/components/HiddenGemsSection";
 import PersonalizedFeed from "@/components/PersonalizedFeed";
+import NearbyInYourDistrict from "@/components/NearbyInYourDistrict";
 import { OnboardingModal } from "@/components/OnboardingModal";
 import { Sparkles, Mountain, UtensilsCrossed, Church, Waves, MapPin, ArrowRight, RefreshCw } from "lucide-react";
 import heroImage from "@/assets/hero-mayon.jpg";
@@ -171,6 +172,7 @@ const Index = () => {
                 Reset Preferences
               </Button>
             </div>
+            <NearbyInYourDistrict userId={userId} />
             <PersonalizedFeed userId={userId} />
           </div>
         </div>
