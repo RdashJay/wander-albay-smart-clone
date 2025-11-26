@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Star, Eye, Heart, CheckCircle } from "lucide-react";
+import { MapPin, Star, Eye, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { useFavorites } from "@/hooks/useFavorites";
-import { Session } from "@supabase/supabase-js";
+import { AddToItineraryDialog } from "@/components/AddToItineraryDialog";
 
 interface TouristSpot {
   id: string;
@@ -41,8 +40,9 @@ interface RecommendedSpotsProps {
 const RecommendedSpots = ({ preferences, userId }: RecommendedSpotsProps) => {
   const [spots, setSpots] = useState<TouristSpot[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedSpot, setSelectedSpot] = useState<{ id: string; name: string } | null>(null);
   const navigate = useNavigate();
-  const { favorites, visited, toggleFavorite, markAsVisited, isFavorite, isVisited } = useFavorites(userId);
 
   useEffect(() => {
     fetchRecommendedSpots();
@@ -170,7 +170,14 @@ const RecommendedSpots = ({ preferences, userId }: RecommendedSpotsProps) => {
         <Card 
           key={spot.id} 
           className="group cursor-pointer hover:shadow-xl transition-all overflow-hidden"
-          onClick={() => navigate(`/spot/${spot.id}`)}
+          onClick={() => {
+            if (userId) {
+              setSelectedSpot({ id: spot.id, name: spot.name });
+              setDialogOpen(true);
+            } else {
+              navigate(`/spot/${spot.id}`);
+            }
+          }}
         >
           <div className="relative h-48 overflow-hidden">
             <img
@@ -209,21 +216,48 @@ const RecommendedSpots = ({ preferences, userId }: RecommendedSpotsProps) => {
             <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
               {spot.description}
             </p>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full"
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(`/spot/${spot.id}`);
-              }}
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              View Details
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/spot/${spot.id}`);
+                }}
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Details
+              </Button>
+              {userId && (
+                <Button 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedSpot({ id: spot.id, name: spot.name });
+                    setDialogOpen(true);
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
       ))}
+
+      {selectedSpot && userId && (
+        <AddToItineraryDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          itemId={selectedSpot.id}
+          itemName={selectedSpot.name}
+          itemType="spot"
+          userId={userId}
+        />
+      )}
     </div>
   );
 };

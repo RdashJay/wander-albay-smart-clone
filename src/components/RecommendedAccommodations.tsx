@@ -3,9 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Star, Heart } from "lucide-react";
+import { MapPin, Star, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { AddToItineraryDialog } from "@/components/AddToItineraryDialog";
 
 interface Accommodation {
   id: string;
@@ -27,16 +27,14 @@ interface RecommendedAccommodationsProps {
 
 export const RecommendedAccommodations = ({ preferences, userId }: RecommendedAccommodationsProps) => {
   const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedAccommodation, setSelectedAccommodation] = useState<{ id: string; name: string } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchRecommendedAccommodations();
-    if (userId) {
-      fetchFavorites();
-    }
-  }, [preferences, userId]);
+  }, [preferences]);
 
   const fetchRecommendedAccommodations = async () => {
     setLoading(true);
@@ -84,58 +82,6 @@ export const RecommendedAccommodations = ({ preferences, userId }: RecommendedAc
     return districtMap[district] || [];
   };
 
-  const fetchFavorites = async () => {
-    if (!userId) return;
-
-    const { data } = await supabase
-      .from("favorites")
-      .select("item_id")
-      .eq("user_id", userId)
-      .eq("item_type", "accommodation");
-
-    if (data) {
-      setFavorites(new Set(data.map((fav) => fav.item_id)));
-    }
-  };
-
-  const toggleFavorite = async (accommodationId: string) => {
-    if (!userId) {
-      toast.error("Please sign in to save favorites");
-      return;
-    }
-
-    const isFavorite = favorites.has(accommodationId);
-
-    if (isFavorite) {
-      const { error } = await supabase
-        .from("favorites")
-        .delete()
-        .eq("user_id", userId)
-        .eq("item_id", accommodationId)
-        .eq("item_type", "accommodation");
-
-      if (!error) {
-        setFavorites((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(accommodationId);
-          return newSet;
-        });
-        toast.success("Removed from favorites");
-      }
-    } else {
-      const { error } = await supabase.from("favorites").insert({
-        user_id: userId,
-        item_id: accommodationId,
-        item_type: "accommodation",
-      });
-
-      if (!error) {
-        setFavorites((prev) => new Set(prev).add(accommodationId));
-        toast.success("Added to favorites");
-      }
-    }
-  };
-
   if (loading) {
     return (
       <div className="mb-12">
@@ -178,7 +124,12 @@ export const RecommendedAccommodations = ({ preferences, userId }: RecommendedAc
           <Card
             key={accommodation.id}
             className="group hover:shadow-lg transition-all cursor-pointer overflow-hidden"
-            onClick={() => navigate(`/explore`)}
+            onClick={() => {
+              if (userId) {
+                setSelectedAccommodation({ id: accommodation.id, name: accommodation.name });
+                setDialogOpen(true);
+              }
+            }}
           >
             <div className="relative h-48 bg-muted overflow-hidden">
               {accommodation.image_url ? (
@@ -192,23 +143,6 @@ export const RecommendedAccommodations = ({ preferences, userId }: RecommendedAc
                   <MapPin className="w-12 h-12" />
                 </div>
               )}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-2 right-2 bg-background/80 hover:bg-background"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleFavorite(accommodation.id);
-                }}
-              >
-                <Heart
-                  className={`w-5 h-5 ${
-                    favorites.has(accommodation.id)
-                      ? "fill-red-500 text-red-500"
-                      : "text-foreground"
-                  }`}
-                />
-              </Button>
             </div>
 
             <CardHeader>
@@ -254,13 +188,46 @@ export const RecommendedAccommodations = ({ preferences, userId }: RecommendedAc
                 </div>
               )}
 
-              <Button className="w-full mt-4" variant="default">
-                View Details
-              </Button>
+              <div className="flex gap-2 mt-4">
+                <Button
+                  className="flex-1"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate("/explore");
+                  }}
+                >
+                  View Details
+                </Button>
+                {userId && (
+                  <Button
+                    className="flex-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedAccommodation({ id: accommodation.id, name: accommodation.name });
+                      setDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {selectedAccommodation && userId && (
+        <AddToItineraryDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          itemId={selectedAccommodation.id}
+          itemName={selectedAccommodation.name}
+          itemType="accommodation"
+          userId={userId}
+        />
+      )}
     </div>
   );
 };

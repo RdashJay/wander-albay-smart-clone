@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
-import { Heart, MapPin, Star } from "lucide-react";
-import { useFavorites } from "@/hooks/useFavorites";
+import { Plus, MapPin, Star } from "lucide-react";
 import { toast } from "sonner";
+import { AddToItineraryDialog } from "@/components/AddToItineraryDialog";
 
 interface TouristSpot {
   id: string;
@@ -29,8 +29,9 @@ const NearbyInYourDistrict = ({ userId }: NearbyInYourDistrictProps) => {
   const [spots, setSpots] = useState<TouristSpot[]>([]);
   const [loading, setLoading] = useState(true);
   const [districtName, setDistrictName] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedSpot, setSelectedSpot] = useState<{ id: string; name: string } | null>(null);
   const navigate = useNavigate();
-  const { favorites, toggleFavorite } = useFavorites(userId);
 
   useEffect(() => {
     fetchNearbySpots();
@@ -155,13 +156,14 @@ const NearbyInYourDistrict = ({ userId }: NearbyInYourDistrictProps) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {spots.map((spot) => {
-          const isFavorited = favorites.includes(spot.id);
-
           return (
             <Card
               key={spot.id}
               className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group"
-              onClick={() => navigate(`/spot/${spot.id}`)}
+              onClick={() => {
+                setSelectedSpot({ id: spot.id, name: spot.name });
+                setDialogOpen(true);
+              }}
             >
               <div className="relative h-48 overflow-hidden">
                 <img
@@ -179,19 +181,6 @@ const NearbyInYourDistrict = ({ userId }: NearbyInYourDistrictProps) => {
                     {spot.municipality}
                   </Badge>
                 )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite(spot.id);
-                  }}
-                  className="absolute top-3 right-3 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
-                >
-                  <Heart
-                    className={`w-5 h-5 ${
-                      isFavorited ? "fill-red-500 text-red-500" : "text-foreground"
-                    }`}
-                  />
-                </button>
               </div>
 
               <CardContent className="p-4 space-y-3">
@@ -225,21 +214,47 @@ const NearbyInYourDistrict = ({ userId }: NearbyInYourDistrictProps) => {
                   </div>
                 )}
 
-                <Button
-                  className="w-full"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/spot/${spot.id}`);
-                  }}
-                >
-                  View Details
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    className="flex-1"
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/spot/${spot.id}`);
+                    }}
+                  >
+                    View Details
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedSpot({ id: spot.id, name: spot.name });
+                      setDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add to Itinerary
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           );
         })}
       </div>
+
+      {selectedSpot && (
+        <AddToItineraryDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          itemId={selectedSpot.id}
+          itemName={selectedSpot.name}
+          itemType="spot"
+          userId={userId}
+        />
+      )}
     </div>
   );
 };

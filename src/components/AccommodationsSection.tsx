@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building2, MapPin, Star, Phone, Mail, Wifi, Heart } from "lucide-react";
+import { Building2, MapPin, Star, Phone, Mail, Wifi, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useFavorites } from "@/hooks/useFavorites";
+import { AddToItineraryDialog } from "@/components/AddToItineraryDialog";
+import { Session } from "@supabase/supabase-js";
 
 interface Accommodation {
   id: string;
@@ -34,7 +35,8 @@ const AccommodationsSection = ({ userId, filters }: AccommodationsSectionProps) 
   const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
-  const { toggleFavorite, isFavorite } = useFavorites(userId);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedAccommodation, setSelectedAccommodation] = useState<{ id: string; name: string } | null>(null);
 
   const categories = [
     "All",
@@ -145,6 +147,12 @@ const AccommodationsSection = ({ userId, filters }: AccommodationsSectionProps) 
             <Card
               key={accommodation.id}
               className="group cursor-pointer hover:shadow-xl transition-all overflow-hidden"
+              onClick={() => {
+                if (userId) {
+                  setSelectedAccommodation({ id: accommodation.id, name: accommodation.name });
+                  setDialogOpen(true);
+                }
+              }}
             >
               <div className="relative h-48 overflow-hidden bg-muted">
                 {accommodation.image_url ? (
@@ -167,24 +175,21 @@ const AccommodationsSection = ({ userId, filters }: AccommodationsSectionProps) 
 
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-lg line-clamp-1 group-hover:text-primary transition-colors flex-1">
+                  <h3 className="font-semibold text-lg line-clamp-1 group-hover:text-primary transition-colors">
                     {accommodation.name}
                   </h3>
                   {userId && (
                     <Button
                       variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleFavorite(accommodation.id);
+                        setSelectedAccommodation({ id: accommodation.id, name: accommodation.name });
+                        setDialogOpen(true);
                       }}
                     >
-                      <Heart
-                        className={`w-4 h-4 ${
-                          isFavorite(accommodation.id) ? "fill-current text-red-500" : ""
-                        }`}
-                      />
+                      <Plus className="w-4 h-4" />
                     </Button>
                   )}
                 </div>
@@ -259,6 +264,17 @@ const AccommodationsSection = ({ userId, filters }: AccommodationsSectionProps) 
             </p>
           </CardContent>
         </Card>
+      )}
+
+      {selectedAccommodation && userId && (
+        <AddToItineraryDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          itemId={selectedAccommodation.id}
+          itemName={selectedAccommodation.name}
+          itemType="accommodation"
+          userId={userId}
+        />
       )}
     </div>
   );
