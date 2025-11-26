@@ -36,6 +36,8 @@ const Dashboard = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showSpotSelection, setShowSpotSelection] = useState(false);
   const [showAccommodationSelection, setShowAccommodationSelection] = useState(false);
+  const [showSpotSelection, setShowSpotSelection] = useState(false);
+  const [showAccommodationSelection, setShowAccommodationSelection] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
