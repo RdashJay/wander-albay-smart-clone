@@ -263,7 +263,7 @@ const MyItinerary = () => {
                                 <span className="line-clamp-1">{spot.location}</span>
                               </div>
                               <div className="flex flex-wrap gap-1 mt-2">
-                                {spot.category.slice(0, 2).map((cat) => (
+                                {(spot.category || []).slice(0, 2).map((cat) => (
                                   <Badge key={cat} variant="outline" className="text-xs">
                                     {cat}
                                   </Badge>
