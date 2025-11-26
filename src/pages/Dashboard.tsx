@@ -260,7 +260,7 @@ const Dashboard = () => {
           <div className="mb-12">
             <h2 className="text-2xl font-bold mb-6">Quick Actions</h2>
             <div className="grid md:grid-cols-3 gap-6">
-              <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/itinerary")}>
+              <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/my-itinerary")}>
                 <CardContent className="p-6 text-center">
                   <Sparkles className="w-12 h-12 mx-auto mb-4 text-primary" />
                   <h3 className="font-semibold text-lg mb-2">Build New Itinerary</h3>
@@ -436,7 +436,7 @@ const Dashboard = () => {
         <p className="text-muted-foreground mb-6">
           Start planning your adventure by creating your first itinerary
         </p>
-        <Button onClick={() => navigate("/itinerary")}>
+        <Button onClick={() => navigate("/my-itinerary")}>
           <Sparkles className="w-4 h-4 mr-2" />
           Build Itinerary
         </Button>
