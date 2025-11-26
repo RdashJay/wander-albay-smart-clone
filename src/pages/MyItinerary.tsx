@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { MapPin, Navigation, Trash2, Loader2, Calendar, AlertCircle, Plus } from "lucide-react";
+import { MapPin, Navigation, Trash2, Loader2, Calendar, AlertCircle, Plus, Sparkles } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
 import { CreateItineraryModal } from "@/components/CreateItineraryModal";
 
@@ -161,8 +161,8 @@ const MyItinerary = () => {
                   Start planning your adventure by creating your first itinerary
                 </p>
                 <Button onClick={() => setShowCreateModal(true)} className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Create Itinerary
+                  <Sparkles className="w-4 h-4" />
+                  Build Itinerary
                 </Button>
               </div>
             </Card>
